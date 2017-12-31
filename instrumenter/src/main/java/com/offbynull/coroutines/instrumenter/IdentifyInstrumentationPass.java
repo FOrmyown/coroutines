@@ -25,6 +25,8 @@ import static com.offbynull.coroutines.instrumenter.InternalFields.INSTRUMENTED_
 import static com.offbynull.coroutines.instrumenter.InternalFields.INSTRUMENTED_MARKER_FIELD_VALUE;
 import com.offbynull.coroutines.user.Continuation;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
@@ -37,6 +39,7 @@ import org.apache.commons.lang3.Validate;
 final class IdentifyInstrumentationPass implements InstrumentationPass {
 
     private static final Type CONTINUATION_CLASS_TYPE = Type.getType(Continuation.class);
+    private static final Type CONTINUATION_ANNO_CLASS_TYPE = Type.getType(com.offbynull.coroutines.user.annotation.Continuation.class);
 
     @Override
     public void pass(ClassNode classNode, InstrumentationState state) {
@@ -69,12 +72,18 @@ final class IdentifyInstrumentationPass implements InstrumentationPass {
         }
 
         // Find methods that need to be instrumented. If none are found, skip this class;
+
         List<MethodNode> methodNodesToInstrument = findMethodsWithParameter(classNode.methods, CONTINUATION_CLASS_TYPE);
+
         if (methodNodesToInstrument.isEmpty()) {
             state.control(NO_INSTRUMENT);
             return;
         }
-
+        // Remove
+        methodNodesToInstrument = methodNodesToInstrument.stream()
+                .filter((m)->m.visibleAnnotations.stream().map((anno)-> Type.getType(anno.desc)).collect(Collectors.toList())
+                            .contains(CONTINUATION_ANNO_CLASS_TYPE))
+                .collect(Collectors.toList());
         // Add into internal data structure used for sharing info between passes
         methodNodesToInstrument.forEach(mn -> {
             MethodAttributes existing = state.methodAttributes().putIfAbsent(mn, null);

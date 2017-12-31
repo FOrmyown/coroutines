@@ -27,7 +27,7 @@ import java.io.Serializable;
  * internal use by the instrumentation logic and should not be used directly.</b>.
  * @author Kasra Faghihi
  */
-public final class Continuation implements Serializable {
+public class Continuation implements Serializable {
     private static final long serialVersionUID = 5L;
     
     /**

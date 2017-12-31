@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="ant-plugin" />
+        <module name="build-tools" />
+        <module name="gradle-plugin" />
+        <module name="instrumenter" />
+        <module name="java-agent" />
+        <module name="maven-plugin" />
+        <module name="user" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="ant-plugin" target="1.8" />
+      <module name="build-tools" target="1.5" />
+      <module name="coroutines" target="1.5" />
+      <module name="gradle-plugin" target="1.8" />
+      <module name="instrumenter" target="1.8" />
+      <module name="java-agent" target="1.8" />
+      <module name="maven-plugin" target="1.8" />
+      <module name="user" target="1.5" />
+    </bytecodeTargetLevel>
+  </component>
+</project>
