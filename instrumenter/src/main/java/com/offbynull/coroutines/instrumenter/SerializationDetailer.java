@@ -47,7 +47,7 @@ final class SerializationDetailer {
             ContinuationPoint cp = cps.get(i);
 
             int line = cp.getLineNumber() == null ? -1 : cp.getLineNumber();
-            String header = String.format("Continuation Point ID: %-4d Line: %-4d Type: %s",
+            String header = String.format("SuspendableContext Point ID: %-4d Line: %-4d Type: %s",
                     i,
                     line,
                     cp.getClass().getSimpleName());

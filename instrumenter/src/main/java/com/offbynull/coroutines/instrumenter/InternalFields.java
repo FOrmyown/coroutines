@@ -16,7 +16,7 @@
  */
 package com.offbynull.coroutines.instrumenter;
 
-import com.offbynull.coroutines.user.Continuation;
+import com.offbynull.coroutines.user.SuspendableContext;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -37,9 +37,9 @@ final class InternalFields {
         try {
             // We update serialVersionUIDs in user package whenever we do anything that makes us incompatible with previous versions, so
             // this is a good value to use to detect which version of the instrumenter we instrumented with
-            INSTRUMENTED_MARKER_FIELD_VALUE = (Long) FieldUtils.readDeclaredStaticField(Continuation.class, "serialVersionUID", true);
+            INSTRUMENTED_MARKER_FIELD_VALUE = (Long) FieldUtils.readDeclaredStaticField(SuspendableContext.class, "serialVersionUID", true);
         } catch (Exception e) {
-            throw new IllegalStateException("Unable to grab int value from " + Continuation.class.getName() + " serialVersionUID", e);
+            throw new IllegalStateException("Unable to grab int value from " + SuspendableContext.class.getName() + " serialVersionUID", e);
         }
     }
   

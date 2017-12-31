@@ -17,7 +17,7 @@
 package com.offbynull.coroutines.instrumenter;
 
 import com.offbynull.coroutines.instrumenter.asm.VariableTable.Variable;
-import com.offbynull.coroutines.user.Continuation;
+import com.offbynull.coroutines.user.SuspendableContext;
 import com.offbynull.coroutines.user.MethodState;
 import org.apache.commons.lang3.Validate;
 import org.objectweb.asm.Type;
@@ -31,7 +31,7 @@ final class CoreVariables {
             Variable methodStateVar) {
         Validate.notNull(continuationArgVar);
         Validate.notNull(methodStateVar);
-        Validate.isTrue(continuationArgVar.getType().equals(Type.getType(Continuation.class)));
+        Validate.isTrue(continuationArgVar.getType().equals(Type.getType(SuspendableContext.class)));
         Validate.isTrue(methodStateVar.getType().equals(Type.getType(MethodState.class)));
         
         this.continuationArgVar = continuationArgVar;

@@ -16,7 +16,7 @@
  */
 
 /**
- * Coroutine instrumentation classes.
+ * Suspendable instrumentation classes.
  * 
  * @author Kasra Faghihi
  */

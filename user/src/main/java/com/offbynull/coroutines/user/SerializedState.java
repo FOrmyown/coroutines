@@ -27,24 +27,24 @@ import java.io.Serializable;
 public final class SerializedState implements Serializable {
     private static final long serialVersionUID = 5L;
     
-    private final Coroutine coroutine;
+    private final Suspendable suspendable;
     private final Object context;
     private final VersionedFrame[] frames; // at each frame, we can have mulitple frame states (for older/newer versions)
 
     /**
      * Constructs a {@link SerializedState} object.
-     * @param coroutine coroutine object
-     * @param context coroutine context
+     * @param suspendable suspendable object
+     * @param context suspendable context
      * @param frames method states
      * @throws NullPointerException if {@code frames}
      * @throws IllegalArgumentException if any elements of {@code frame} are {@code null} or are otherwise in an invalid state
      */
-    public SerializedState(Coroutine coroutine, Object context, VersionedFrame[] frames) {
+    public SerializedState(Suspendable suspendable, Object context, VersionedFrame[] frames) {
         if (frames == null) {
             throw new NullPointerException();
         }
 
-        this.coroutine = coroutine;
+        this.suspendable = suspendable;
         this.context = context;
         this.frames = (VersionedFrame[]) frames.clone();
 
@@ -56,24 +56,24 @@ public final class SerializedState implements Serializable {
     }
 
     /**
-     * Get coroutine.
-     * @return coroutine
+     * Get suspendable.
+     * @return suspendable
      */
-    public Coroutine getCoroutine() {
-        return coroutine;
+    public Suspendable getSuspendable() {
+        return suspendable;
     }
 
     /**
-     * Get coroutine context.
-     * @return coroutine context
+     * Get suspendable context.
+     * @return suspendable context
      */
     public Object getContext() {
         return context;
     }
 
     /**
-     * Get coroutine method states.
-     * @return coroutine method states
+     * Get suspendable method states.
+     * @return suspendable method states
      */
     public VersionedFrame[] getFrames() {
         return (VersionedFrame[]) frames.clone();
@@ -82,7 +82,7 @@ public final class SerializedState implements Serializable {
     // Because thsi class is being serialized/deserialized, we need to validate that it's correct once we deserialize it. Call this
     // method to do that.
     void validateState() {
-        if (frames == null || coroutine == null) {
+        if (frames == null || suspendable == null) {
             throw new IllegalStateException("Bad state");
         }
 
@@ -727,8 +727,8 @@ public final class SerializedState implements Serializable {
          * @param longs long values
          * @param doubles double values
          * @param objects object values
-         * @param continuationIndexes position within {@link objects} where the object pointed to the original {@code Continuation} for the
-         * coroutine
+         * @param continuationIndexes position within {@link objects} where the object pointed to the original {@code SuspendableContext} for the
+         * suspendable
          * @throws NullPointerException if any argument is {@code null}
          * @throws IllegalArgumentException if {@code continuationIndexes} points to out of bounds indexes within {@code objects} or if
          * if {@code continuationIndexes} points to non-null indexes within {@code objects}
@@ -795,8 +795,8 @@ public final class SerializedState implements Serializable {
         }
 
         /**
-         * Get positions within objects array where the object pointed to the original {@link Continuation} for the coroutine.
-         * @return positions within {@link #getObjects() } that point to the original {@link Continuation}
+         * Get positions within objects array where the object pointed to the original {@link SuspendableContext} for the suspendable.
+         * @return positions within {@link #getObjects() } that point to the original {@link SuspendableContext}
          */
         public int[] getContinuationIndexes() {
             return (int[]) continuationIndexes.clone();

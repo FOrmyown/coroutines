@@ -39,14 +39,15 @@ import static com.offbynull.coroutines.instrumenter.generators.GenericGenerators
 import static com.offbynull.coroutines.instrumenter.asm.MethodInvokeUtils.getArgumentCountRequiredForInvocation;
 import static com.offbynull.coroutines.instrumenter.asm.MethodInvokeUtils.getReturnTypeOfInvocation;
 import com.offbynull.coroutines.instrumenter.asm.VariableTable.Variable;
-import com.offbynull.coroutines.user.Continuation;
-import static com.offbynull.coroutines.user.Continuation.MODE_NORMAL;
-import static com.offbynull.coroutines.user.Continuation.MODE_SAVING;
+import com.offbynull.coroutines.user.SuspendableContext;
+import static com.offbynull.coroutines.user.SuspendableContext.MODE_NORMAL;
+import static com.offbynull.coroutines.user.SuspendableContext.MODE_SAVING;
 import com.offbynull.coroutines.user.LockState;
 import com.offbynull.coroutines.user.MethodState;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.stream.IntStream;
+
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
@@ -77,20 +78,20 @@ import static com.offbynull.coroutines.instrumenter.generators.GenericGenerators
 final class ContinuationGenerators {
     
     private static final Method CONTINUATION_GETMODE_METHOD
-            = MethodUtils.getAccessibleMethod(Continuation.class, "getMode");
+            = MethodUtils.getAccessibleMethod(SuspendableContext.class, "getMode");
     private static final Method CONTINUATION_SETMODE_METHOD
-            = MethodUtils.getAccessibleMethod(Continuation.class, "setMode", Integer.TYPE);
+            = MethodUtils.getAccessibleMethod(SuspendableContext.class, "setMode", Integer.TYPE);
 
-    // Need a primer on how to handle method states with the Continuation class? There are comments in the Continuation class that describe
+    // Need a primer on how to handle method states with the SuspendableContext class? There are comments in the SuspendableContext class that describe
     // how things should work.
     private static final Method CONTINUATION_LOADNEXTMETHODSTATE_METHOD
-            = MethodUtils.getAccessibleMethod(Continuation.class, "loadNextMethodState");
+            = MethodUtils.getAccessibleMethod(SuspendableContext.class, "loadNextMethodState");
     private static final Method CONTINUATION_UNLOADCURRENTMETHODSTATE_METHOD
-            = MethodUtils.getAccessibleMethod(Continuation.class, "unloadCurrentMethodState");
+            = MethodUtils.getAccessibleMethod(SuspendableContext.class, "unloadCurrentMethodState");
     private static final Method CONTINUATION_UNLOADMETHODSTATETOBEFORE_METHOD
-            = MethodUtils.getAccessibleMethod(Continuation.class, "unloadMethodStateToBefore", MethodState.class);
+            = MethodUtils.getAccessibleMethod(SuspendableContext.class, "unloadMethodStateToBefore", MethodState.class);
     private static final Method CONTINUATION_PUSHNEWMETHODSTATE_METHOD
-            = MethodUtils.getAccessibleMethod(Continuation.class, "pushNewMethodState", MethodState.class);
+            = MethodUtils.getAccessibleMethod(SuspendableContext.class, "pushNewMethodState", MethodState.class);
 
     private static final Constructor<MethodState> METHODSTATE_INIT_METHOD
             = ConstructorUtils.getAccessibleConstructor(MethodState.class, String.class, Integer.TYPE, Integer.TYPE,
@@ -253,9 +254,9 @@ final class ContinuationGenerators {
                         enterStoredMonitors(markerType, lockVars),
                 }),
                 debugMarker(markerType, dbgSig + "Popping off continuation object from operand stack"),
-                pop(), // frame at the time of invocation to Continuation.suspend() has Continuation reference on the
+                pop(), // frame at the time of invocation to SuspendableContext.suspend() has SuspendableContext reference on the
                        // stack that would have been consumed by that invocation... since we're removing that call, we
-                       // also need to pop the Continuation reference from the stack... it's important that we
+                       // also need to pop the SuspendableContext reference from the stack... it's important that we
                        // explicitly do it at this point becuase during loading the stack will be restored with top
                        // of stack pointing to that continuation object
                 debugMarker(markerType, dbgSig + "Setting mode to normal"),
@@ -308,7 +309,7 @@ final class ContinuationGenerators {
         //          <method invocation>
         //          if (continuation.getMode() == MODE_SAVING) {
         //              exitLocks(lockState);
-        //              continuation.addPending(methodState); // method state should be loaded from Continuation.saved
+        //              continuation.addPending(methodState); // method state should be loaded from SuspendableContext.saved
         //              return <dummy>;
         //          }
         //             // At this point the invocation happened successfully, so we want to save the invocation's result, restore this
@@ -424,7 +425,7 @@ final class ContinuationGenerators {
         String dbgSig = getLogPrefix(attrs);
         
         //          enterLocks(lockState);
-        //          continuation.addPending(methodState); // method state should be loaded from Continuation.saved
+        //          continuation.addPending(methodState); // method state should be loaded from SuspendableContext.saved
         //              // Load up enough of the stack to invoke the method. The invocation here needs to be wrapped in a try catch because
         //              // the original invocation was within a try catch block (at least 1, maybe more). If we do get a throwable, jump
         //              // back to the area where the original invocation was and rethrow it there so the proper catch handlers can
@@ -615,7 +616,7 @@ final class ContinuationGenerators {
                 debugMarker(markerType, dbgSig + "Saving SUSPEND " + idx),
                 debugMarker(markerType, dbgSig + "Saving operand stack"),
                 saveOperandStack(markerType, savedStackVars, frame), // REMEMBER: STACK IS TOTALLY EMPTY AFTER THIS. ALSO, DON'T FORGET THAT
-                                                                     // Continuation OBJECT WILL BE TOP ITEM, NEEDS TO BE DISCARDED ON LOAD
+                                                                     // SuspendableContext OBJECT WILL BE TOP ITEM, NEEDS TO BE DISCARDED ON LOAD
                 debugMarker(markerType, dbgSig + "Saving locals"),
                 saveLocals(markerType, savedLocalsVars, frame),
                 debugMarker(markerType, dbgSig + "Packing locals and operand stack in to container"),

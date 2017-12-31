@@ -18,7 +18,7 @@ package com.offbynull.coroutines.instrumenter;
 
 import com.offbynull.coroutines.instrumenter.generators.DebugGenerators;
 import static com.offbynull.coroutines.instrumenter.testhelpers.TestUtils.loadClassesInZipResourceAndInstrument;
-import com.offbynull.coroutines.user.Coroutine;
+import com.offbynull.coroutines.user.Suspendable;
 import com.offbynull.coroutines.user.CoroutineReader;
 import com.offbynull.coroutines.user.CoroutineRunner;
 import com.offbynull.coroutines.user.CoroutineWriter;
@@ -30,6 +30,7 @@ import static org.apache.commons.lang3.reflect.FieldUtils.readField;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 import static com.offbynull.coroutines.user.SerializedState.FrameModifier.WRITE;
 import static com.offbynull.coroutines.user.SerializedState.FrameModifier.READ;
@@ -47,10 +48,10 @@ public final class VersioningTest {
     @Test
     public void mustInterceptOnRead() throws Exception {
         runWrapped(INTERCEPT_TEST, (classLoader) -> {
-            Class<Coroutine> cls = (Class<Coroutine>) classLoader.loadClass(INTERCEPT_TEST);
+            Class<Suspendable> cls = (Class<Suspendable>) classLoader.loadClass(INTERCEPT_TEST);
 
-            Coroutine coroutine = invokeConstructor(cls);
-            CoroutineRunner runner = new CoroutineRunner(coroutine);
+            Suspendable suspendable = invokeConstructor(cls);
+            CoroutineRunner runner = new CoroutineRunner(suspendable);
 
             assertTrue(runner.execute());
 
@@ -83,7 +84,7 @@ public final class VersioningTest {
 
             assertFalse(runner.execute());
 
-            StringBuilder sb = (StringBuilder) readField(runner.getCoroutine(), "sb", true);
+            StringBuilder sb = (StringBuilder) readField(runner.getSuspendable(), "sb", true);
             assertEquals(
                     "pre_src: InterceptTest 1 \u0002 3 4.0 5 6.0 src\npost_src: InterceptTest -1 \ufffe -3 -4.0 -5 -6.0 dst\n",
                     sb.toString());
@@ -93,10 +94,10 @@ public final class VersioningTest {
     @Test
     public void mustInterceptOnWrite() throws Exception {
         runWrapped(INTERCEPT_TEST, (classLoader) -> {
-            Class<Coroutine> cls = (Class<Coroutine>) classLoader.loadClass(INTERCEPT_TEST);
+            Class<Suspendable> cls = (Class<Suspendable>) classLoader.loadClass(INTERCEPT_TEST);
 
-            Coroutine coroutine = invokeConstructor(cls);
-            CoroutineRunner runner = new CoroutineRunner(coroutine);
+            Suspendable suspendable = invokeConstructor(cls);
+            CoroutineRunner runner = new CoroutineRunner(suspendable);
 
             assertTrue(runner.execute());
 
@@ -129,7 +130,7 @@ public final class VersioningTest {
 
             assertFalse(runner.execute());
 
-            StringBuilder sb = (StringBuilder) readField(runner.getCoroutine(), "sb", true);
+            StringBuilder sb = (StringBuilder) readField(runner.getSuspendable(), "sb", true);
             assertEquals(
                     "pre_src: InterceptTest 1 \u0002 3 4.0 5 6.0 src\npost_src: InterceptTest -1 \ufffe -3 -4.0 -5 -6.0 dst\n",
                     sb.toString());
@@ -151,10 +152,10 @@ public final class VersioningTest {
 
         // Run the original and execute it once (there's only 1 suspend in this class)
         runWrapped(UPDATE_TEST_ORIGINAL, (classLoader) -> {
-            Class<Coroutine> cls = (Class<Coroutine>) classLoader.loadClass(UPDATE_TEST);
+            Class<Suspendable> cls = (Class<Suspendable>) classLoader.loadClass(UPDATE_TEST);
 
-            Coroutine coroutine = invokeConstructor(cls);
-            CoroutineRunner runner = new CoroutineRunner(coroutine);
+            Suspendable suspendable = invokeConstructor(cls);
+            CoroutineRunner runner = new CoroutineRunner(suspendable);
 
             assertTrue(runner.execute());
 
@@ -168,7 +169,7 @@ public final class VersioningTest {
         // Read it back in to the modified version and execute it again to finish (using frame update modifier to get it loaded to correct
         // frame state)
         runWrapped(UPDATE_TEST_MODIFIED, (classLoader) -> {
-            Class<Coroutine> cls = (Class<Coroutine>) classLoader.loadClass(UPDATE_TEST);
+            Class<Suspendable> cls = (Class<Suspendable>) classLoader.loadClass(UPDATE_TEST);
 
             FrameUpdatePoint updateEchoPoint = new FrameUpdatePoint(UPDATE_TEST, -526669244, 0, (frame, mode) -> {
                 Object[] varObjects =  frame.getVariables().getObjects();
@@ -197,10 +198,10 @@ public final class VersioningTest {
         // Run the original and execute it once (there's only 1 suspend in this class), but when you serialize it make sure it serializes
         // to the the modified version and the original version
         runWrapped(UPDATE_TEST_MODIFIED, (classLoader) -> {
-            Class<Coroutine> cls = (Class<Coroutine>) classLoader.loadClass(UPDATE_TEST);
+            Class<Suspendable> cls = (Class<Suspendable>) classLoader.loadClass(UPDATE_TEST);
 
-            Coroutine coroutine = invokeConstructor(cls);
-            CoroutineRunner runner = new CoroutineRunner(coroutine);
+            Suspendable suspendable = invokeConstructor(cls);
+            CoroutineRunner runner = new CoroutineRunner(suspendable);
 
             assertTrue(runner.execute());
 
@@ -225,7 +226,7 @@ public final class VersioningTest {
 
         // Read it back in to the MODIFIED version -- no upgrader should be needed
         runWrapped(UPDATE_TEST_MODIFIED, (classLoader) -> {
-            Class<Coroutine> cls = (Class<Coroutine>) classLoader.loadClass(UPDATE_TEST);
+            Class<Suspendable> cls = (Class<Suspendable>) classLoader.loadClass(UPDATE_TEST);
 
             CoroutineReader reader = new CoroutineReader();
             
@@ -239,7 +240,7 @@ public final class VersioningTest {
         // Read it back in to the ORIGINAL version -- no upgrader should be needed because we added a frame for this version when we
         // originally wrote out
         runWrapped(UPDATE_TEST_ORIGINAL, (classLoader) -> {
-            Class<Coroutine> cls = (Class<Coroutine>) classLoader.loadClass(UPDATE_TEST);
+            Class<Suspendable> cls = (Class<Suspendable>) classLoader.loadClass(UPDATE_TEST);
 
             CoroutineReader reader = new CoroutineReader();
             

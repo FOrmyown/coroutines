@@ -20,7 +20,7 @@ More information on the topic of coroutines and their advantages can be found on
 
 * [Wikipedia: Coroutine](https://en.wikipedia.org/wiki/Coroutine)
 * [Wikipedia: Fiber (computer science)](https://en.wikipedia.org/wiki/Fiber_(computer_science))
-* [Stackoverflow: Difference between a "coroutine" and a "thread"?](https://stackoverflow.com/a/23436125)
+* [Stackoverflow: Difference between a "suspendable" and a "thread"?](https://stackoverflow.com/a/23436125)
 
 ## Table of Contents
 
@@ -179,11 +179,11 @@ java -javaagent:java-agent-1.4.0-shaded.jar myapp.jar
 # By default, debug mode is false. 
 ```
 
-The Coroutines Java Agent won't instrument classes that have already been instrumented, so it should be safe to use it with coroutine classes that may have already gone through instrumentation (as long as those classes have been instrumented by the same version of the instrumenter).
+The Coroutines Java Agent won't instrument classes that have already been instrumented, so it should be safe to use it with suspendable classes that may have already gone through instrumentation (as long as those classes have been instrumented by the same version of the instrumenter).
 
 ### Code Example
 
-First, declare your coroutine...
+First, declare your suspendable...
 ```java
 public static final class MyCoroutine implements Coroutine {
     @Override
@@ -201,7 +201,7 @@ public static final class MyCoroutine implements Coroutine {
 }
 ```
 
-Then, execute your coroutine...
+Then, execute your suspendable...
 ```java
 CoroutineRunner r = new CoroutineRunner(new MyCoroutine());
 r.execute();
@@ -219,28 +219,28 @@ started
 3
 ```
 
-Any method that takes in a ```Continuation``` type as a parameter will be instrumented by the plugin to work as part of a coroutine. The entry-point for your coroutine must implement the ```Coroutine``` interface. ```CoroutineRunner.execute()``` is used to start / resume execution of your coroutine, while ```Continuation.suspend()``` suspends the execution of your coroutine.
+Any method that takes in a ```Continuation``` type as a parameter will be instrumented by the plugin to work as part of a suspendable. The entry-point for your suspendable must implement the ```Coroutine``` interface. ```CoroutineRunner.execute()``` is used to start / resume execution of your suspendable, while ```Continuation.suspend()``` suspends the execution of your suspendable.
 
 **:warning: WARNING -- Use ```Continuation``` objects as intended. :warning:**
 
-1. The ```Continuation``` object is not meant to be retained. Never set it to a field or otherwise pass it to a method that isn't intended to run as part of a coroutine.
+1. The ```Continuation``` object is not meant to be retained. Never set it to a field or otherwise pass it to a method that isn't intended to run as part of a suspendable.
 1. The only methods on ```Continuation``` that you should be calling are ```suspend()```, ```getContext()```, and ```setContext()```. All other methods are for internal use only.
 
 ## Serialization and Versioning Guide
 
 **:warning: WARNING -- This is an advanced feature. Familiarity with JVM bytecode is highly recommended. :warning:**
 
-The Coroutines project provides support for serialization and versioning. Serialization and versioning work hand-in-hand. Serialization allows you to convert your coroutine to a byte array and vice-versa, while versioning allows you to make small tweaks to your coroutine's logic while still being able to load up serialized data from previous versions.
+The Coroutines project provides support for serialization and versioning. Serialization and versioning work hand-in-hand. Serialization allows you to convert your suspendable to a byte array and vice-versa, while versioning allows you to make small tweaks to your suspendable's logic while still being able to load up serialized data from previous versions.
 
 Typical use-cases include...
 
- * checkpointing/caching your coroutine to disk and loading it back out again.
- * transmitting your coroutine over the wire.
- * forking your coroutine.
+ * checkpointing/caching your suspendable to disk and loading it back out again.
+ * transmitting your suspendable over the wire.
+ * forking your suspendable.
 
 ### Serialization Instructions
 
-To serialize / deserialize a coroutine, use ```CoroutineWriter``` and ```CoroutineReader```. By default, these classes use Java's built-in object serialization mechanism, which means objects that makes up your coroutine's state (classes of methods called, objects on operand stack, objects on local variable table) must implement ```java.io.Serializable``` (see the [Auto Serializable](#auto-serializable) configuration option for more information).
+To serialize / deserialize a suspendable, use ```CoroutineWriter``` and ```CoroutineReader```. By default, these classes use Java's built-in object serialization mechanism, which means objects that makes up your suspendable's state (classes of methods called, objects on operand stack, objects on local variable table) must implement ```java.io.Serializable``` (see the [Auto Serializable](#auto-serializable) configuration option for more information).
 
 Basic example of serialization/deserialization...
 ```java
@@ -293,13 +293,13 @@ To further control how coroutines get serialized/deserialized, create custom imp
 
 ### Versioning Instructions
 
-When using one of the provided build system plugins on your code, classes which contain methods intended to run as part of a coroutine will have a corresponding file generated with the same name, but with a ```.coroutinesinfo``` extension. These files are human-readable and contain basic information required for supporting versioning. They will be included along-side your class files (both in your build path and JAR).
+When using one of the provided build system plugins on your code, classes which contain methods intended to run as part of a suspendable will have a corresponding file generated with the same name, but with a ```.coroutinesinfo``` extension. These files are human-readable and contain basic information required for supporting versioning. They will be included along-side your class files (both in your build path and JAR).
 
 Basic example...
 
 ```java
-import com.offbynull.coroutines.user.Continuation;
-import com.offbynull.coroutines.user.Coroutine;
+import com.offbynull.coroutines.user.SuspendableContext;
+import com.offbynull.coroutines.user.Suspendable;
 import java.io.Serializable;
 import java.util.Random;
 
@@ -356,25 +356,25 @@ Continuation Point ID: 0    Line: 18   Type: SuspendContinuationPoint
   operandObjects[0]    // operand index is 0 / type is Lcom/offbynull/coroutines/user/Continuation;
 ```
 
-For each method identified to run as part of a coroutine, the corresponding ```.coroutinesinfo``` file details the...
+For each method identified to run as part of a suspendable, the corresponding ```.coroutinesinfo``` file details the...
 
  * basic method details (signature, return type, name, owning class, etc..).
  * unique ID used to identify the method (based on class name, method signature, and method bytecode).
- * continuation points in the method (where ```Continuation.suspend()``` is called / where methods that takes in a ```Continuation``` object are called).
- * types expected on the local variables table and operand stack at each continuation point
+ * suspendableContext points in the method (where ```Continuation.suspend()``` is called / where methods that takes in a ```Continuation``` object are called).
+ * types expected on the local variables table and operand stack at each suspendableContext point
 
-When a method intended to run as part of a coroutine is changed, the ID gets updated. Diffing the previous ```.coroutinesinfo``` against the new ```.coroutinesinfo``` will identify what needs to be changed for deserialization of previous versions to work, if anything. If changes are required, they can be applied by using the ```FrameUpdatePoint``` / ```FrameInterceptPoint``` interfaces. The following subsections provide a few basic versioning examples with the ```MyCoroutine``` example class provided above (please read them in order).
+When a method intended to run as part of a suspendable is changed, the ID gets updated. Diffing the previous ```.coroutinesinfo``` against the new ```.coroutinesinfo``` will identify what needs to be changed for deserialization of previous versions to work, if anything. If changes are required, they can be applied by using the ```FrameUpdatePoint``` / ```FrameInterceptPoint``` interfaces. The following subsections provide a few basic versioning examples with the ```MyCoroutine``` example class provided above (please read them in order).
 
 It's important to note that versioning has its limits. This feature is intended for use-cases such as hot-deploying small emergency fixes/patches to a server or enabling saves from older versions of a game to run on newer versions. It isn't intended for cases where there are large structural changes.
 
 #### Example: Modifying state in current version
 
-Notice how the first line of ```MyCoroutine.run()``` creates a ```Random``` seeded with 0. If we serialize this coroutine, we can replace the ```Random``` on deserialization with a more robust random number generator that isn't deterministically seeded.
+Notice how the first line of ```MyCoroutine.run()``` creates a ```Random``` seeded with 0. If we serialize this suspendable, we can replace the ```Random``` on deserialization with a more robust random number generator that isn't deterministically seeded.
 
-Imagine we start the coroutine, run it a few times, and then serialize it...
+Imagine we start the suspendable, run it a few times, and then serialize it...
 
 ```java
-// Create the coroutine.
+// Create the suspendable.
 Coroutine myCoroutine = new MyCoroutine();
 CoroutineRunner runner = new CoroutineRunner(myCoroutine);
         
@@ -416,7 +416,7 @@ When we deserialize, we can explicitly tell the ```CoroutineReader``` to interce
 FrameInterceptPoint randomObjectUpdater = new FrameInterceptPoint(
         "MyCoroutine", // class to intercept
         -1538415977,   // method ID to intercept
-        0,             // continuation point ID to intercept
+        0,             // suspendableContext point ID to intercept
         (frame, mode) -> {
             // Get new secure random
             SecureRandom secureRandom;
@@ -438,7 +438,7 @@ CoroutineReader reader = new CoroutineReader(
         new FrameInterceptPoint[] { randomObjectUpdater }
 );
 
-// Load up the coroutine from the checkpoint. It should now contain a
+// Load up the suspendable from the checkpoint. It should now contain a
 // SecureRandom instead of a random.
 runner = reader.read(data);
 
@@ -451,7 +451,7 @@ runner.execute();
 runner.execute();
 ```
 
-Now, if we execute this deserialized coroutine, we'll get numbers printed to stdout using our new ```SecureRandom```. Here's the output of 3 separate runs (both the serialization and deserialization portion). Note that on each run, the first 4 ```runner.execute()``` calls prior to serialization will always produce the same numbers on each run, while the 6 ```runner.execute()``` after deserializing will produce unique random numbers...
+Now, if we execute this deserialized suspendable, we'll get numbers printed to stdout using our new ```SecureRandom```. Here's the output of 3 separate runs (both the serialization and deserialization portion). Note that on each run, the first 4 ```runner.execute()``` calls prior to serialization will always produce the same numbers on each run, while the 6 ```runner.execute()``` after deserializing will produce unique random numbers...
 
 ```
 started
@@ -493,12 +493,12 @@ started
 
 #### Example: Upgrading from old versions (forward compatability)
 
-If you update a method that's intended to run as part of a coroutine but still want to support deserializing from the old version of that method, you'll need to supply a ```FramePointUpdater``` to convert the older versions the new version.
+If you update a method that's intended to run as part of a suspendable but still want to support deserializing from the old version of that method, you'll need to supply a ```FramePointUpdater``` to convert the older versions the new version.
 
 Imagine we start ```MyCoroutine```, run it a few times, and then serialize it...
 
 ```java
-// Create the coroutine.
+// Create the suspendable.
 Coroutine myCoroutine = new MyCoroutine();
 CoroutineRunner runner = new CoroutineRunner(myCoroutine);
         
@@ -573,7 +573,7 @@ We can see that the method ID got updated from ```1191091979``` to ```-571717800
 FrameUpdatePoint updater = new FrameUpdatePoint(
         "MyCoroutine",// class name to intercept
         1191091979,   // method ID to intercept
-        0,            // continuation point to intercept
+        0,            // suspendableContext point to intercept
         (frame, mode) -> {
             // Read in old variables and compute the missing variable
             int[] ints = frame.getVariables().getInts();
@@ -620,13 +620,13 @@ Keep in mind that you can chain updaters together. For example, if you have a th
 
 #### Example: Supporting old versions  (backward compatability)
 
-In many cases, it may not be enough to just support deserializing from older versions. You may also need to support downgrading to older versions when you serialize, such that both older and newer versions of your coroutine will be able to deserialize.
+In many cases, it may not be enough to just support deserializing from older versions. You may also need to support downgrading to older versions when you serialize, such that both older and newer versions of your suspendable will be able to deserialize.
 
 In the same way that you're able to chain ```FrameUpdatePoint```s in ```CoroutineReader``` to convert to newer versions, you can chain ```FrameUpdatePoint```s in ```CoroutineWriter``` to convert to older versions. The difference is that ```CoroutineWriter``` will write out each conversion in the update chain, allowing ```CoroutineReader``` to pick out the correct version and load it up.
 
 Continuing from the previous example, imagine we start from the initial ```MyCoroutine``` and run it a few times (just like before), but this time we add a ```FrameUpdatePoint``` to ```CoroutineWriter``` so it converts to the modified version of ```MyCoroutine.echo()```...
 ```java
-// Create the coroutine.
+// Create the suspendable.
 Coroutine myCoroutine = new MyCoroutine();
 CoroutineRunner runner = new CoroutineRunner(myCoroutine);
 
@@ -641,7 +641,7 @@ runner.execute();
 FrameUpdatePoint updater = new FrameUpdatePoint(
         "MyCoroutine",// class name to intercept
         1191091979,   // method ID to intercept
-        0,            // continuation point to intercept
+        0,            // suspendableContext point to intercept
         (frame, mode) -> {
             int[] ints = frame.getVariables().getInts();
             Object[] objects = frame.getVariables().getObjects();
@@ -712,11 +712,11 @@ Special care needs to be taken to avoid common pitfalls with serializing and ver
 
 Common pitfalls with serialization include...
 
- * Objects shared between coroutines will end up being duplicated on deserialization. This includes objects passed in via the coroutine context as well as Object constants that have been loaded as variables or operands. Depending on what your code does, this may or may not matter.
+ * Objects shared between coroutines will end up being duplicated on deserialization. This includes objects passed in via the suspendable context as well as Object constants that have been loaded as variables or operands. Depending on what your code does, this may or may not matter.
  * Objects being replaced during deserialization may be referenced in multiple places. For example, an object being replaced on the operand stack may be referenced in other coroutines as well, meaning those references likely need to be updated to the replaced object.
  * Objects being retained must all be serializable. Generally speaking, low-level resources (locks, files, sockets, etc..) will not be serializable. 
 
-Your simplest and best option for avoiding these serialization pitfalls is to design your coroutine such that you isolate it from shared/global objects, locks, and IO resources. Other potential strategies include...
+Your simplest and best option for avoiding these serialization pitfalls is to design your suspendable such that you isolate it from shared/global objects, locks, and IO resources. Other potential strategies include...
 
  * For IO resources, wrap them in such a way that the resource will be serializable. For example, instead of using ```ServerSocket``` directly, you can wrap it in a secondary class that dumps out the port and listening address when serializing and correctly maps it back out when deserializing.
  * For locks, create a custom ```CoroutineWriter.CoroutineSerializer``` implementation that scans and the object graph for known locks and writes out placeholders in their place. A corresponding ```CoroutineReader.CoroutineDeserializer``` implementation will then re-map those placeholders to the correct lock.
@@ -742,7 +742,7 @@ The following subsections provide information on the various configuration optio
 
 ### Debug Mode
 
-Debug mode adds extra instrumentation logic such that you can always view the state of the methods that make up your coroutine when tracing via a debugger (e.g. the debugger in Netbeans/Eclipse/IntelliJ). By default, the instrumenter tries to keep things efficient by loading only as much as is needed for your coroutines to continue properly executing.
+Debug mode adds extra instrumentation logic such that you can always view the state of the methods that make up your suspendable when tracing via a debugger (e.g. the debugger in Netbeans/Eclipse/IntelliJ). By default, the instrumenter tries to keep things efficient by loading only as much as is needed for your coroutines to continue properly executing.
 
  * Name: ```debugMode```.
  * Value: { ```true``` | ```false``` }.
@@ -750,7 +750,7 @@ Debug mode adds extra instrumentation logic such that you can always view the st
 
 ### Auto Serializable
 
-Auto-serializable will automatically force the owning classes of instrumented methods to implement ```java.io.Serializable``` (if it doesn't already do so) and default ```serialVersionUID``` to ```0L``` (if it isn't already set). This is required by the default serializer/deserializer because it uses Java's internal serialization mechanism to write out and read in your coroutines. Without ```java.io.Serializable```, you'll get a ```java.io.NotSerializableException``` when serializing your coroutine. Without a hardcoded ```serialVersionUID```, any change to the owning class will cause deserialization of previous versions to fail. 
+Auto-serializable will automatically force the owning classes of instrumented methods to implement ```java.io.Serializable``` (if it doesn't already do so) and default ```serialVersionUID``` to ```0L``` (if it isn't already set). This is required by the default serializer/deserializer because it uses Java's internal serialization mechanism to write out and read in your coroutines. Without ```java.io.Serializable```, you'll get a ```java.io.NotSerializableException``` when serializing your suspendable. Without a hardcoded ```serialVersionUID```, any change to the owning class will cause deserialization of previous versions to fail. 
 
 This is provided as a convenience for the user. It does nothing to ensure that the variables, operands, or object state of the class being serialized is serializable. You can turn this feature off if you aren't using serialization, you're using a custom serializer, or you're supplying ```java.io.Serializable``` and ```serialVersionUID``` manually.
 
@@ -770,7 +770,7 @@ Marker type adds extra logic to track and output what the instrumenter added to 
 
 #### How much overhead am I adding?
 
-Instrumentation adds loading and saving code to each method that's intended to run as part of a coroutine, so your class files will become larger and that extra code will take time to execute.
+Instrumentation adds loading and saving code to each method that's intended to run as part of a suspendable, so your class files will become larger and that extra code will take time to execute.
 
 As of version 1.2.0, the instrumenter generates much more efficient suspend/resume logic.
 
@@ -787,7 +787,7 @@ If you know of any other projects please let me know and I'll update this sectio
 
 ##### Reflection API
 
-Your coroutine won't get properly instrumented if any part of your invocation chain is done through Java's reflection API. The example below uses Java's reflection API to invoke echo. The instrumentation logic isn't able to recognize that reflections are being used to call echo and as such it will not instrument around the call to load and save the execution state of the method.
+Your suspendable won't get properly instrumented if any part of your invocation chain is done through Java's reflection API. The example below uses Java's reflection API to invoke echo. The instrumentation logic isn't able to recognize that reflections are being used to call echo and as such it will not instrument around the call to load and save the execution state of the method.
 
 ```java
 public static final class MyCoroutine implements Coroutine {
@@ -922,7 +922,7 @@ identified for instrumentation.
 
 If your IDE delegates to one of the supported build systems (Maven/Gradle/Ant), you can use this with your IDE. In some cases, your IDE may try to optimize by prematurely compiling classes internally, skipping any instrumentation that should be taking place as a part of your build. You'll have to turn this feature off.
 
-For example, if you're using Maven through Netbeans, you must turn off the "Compile On Save" feature that's enabled by default. Otherwise, as soon as you make a change to your coroutine and save, Netbeans will compile your Java file without instrumentation. IntelliJ and Eclipse probably have similar options available. Unfortunately I don't have much experience with those IDEs (... if someone does please let me know and I'll update this section).
+For example, if you're using Maven through Netbeans, you must turn off the "Compile On Save" feature that's enabled by default. Otherwise, as soon as you make a change to your suspendable and save, Netbeans will compile your Java file without instrumentation. IntelliJ and Eclipse probably have similar options available. Unfortunately I don't have much experience with those IDEs (... if someone does please let me know and I'll update this section).
 
 #### What alternatives are available?
 
@@ -949,7 +949,7 @@ If you know of any other projects please let me know and I'll update this sectio
 - CHANGED: Decoupled construction from serialization.
 - CHANGED: Combined serialization method ID and method version.
 - CHANGED: Made deserialization to unrecognized method IDs illegal.
-- CHANGED: Serialization class field identifiers now include continuation point IDs.
+- CHANGED: Serialization class field identifiers now include suspendableContext point IDs.
 - CHANGED: Coroutine extends Serializable.
 - CHANGED: Changed format of Java Agent config arguments.
 
@@ -973,7 +973,7 @@ If you know of any other projects please let me know and I'll update this sectio
 ### [1.2.0] - 2016-09-18
 - CHANGED: Performance improvement: Deferred operand stack and local variable table saving until Coroutine suspended.
 - CHANGED: Performance improvement: No longer autoboxing when storing/loading operand stack and local variable table.
-- CHANGED: Performance improvement: No longer autoboxing when caching return value of continuation points.
+- CHANGED: Performance improvement: No longer autoboxing when caching return value of suspendableContext points.
 - CHANGED: Performance improvement: Operand stack reloads after a save only if it's needed.
 - CHANGED: Performance improvement: Casting of operand stack items only if it's needed.
 - CHANGED: Performance improvement: Pushing/popping of method states only if it's needed.
@@ -996,7 +996,7 @@ If you know of any other projects please let me know and I'll update this sectio
 ### [1.0.4] - 2015-04-20
 - FIXED: Proper handling of caught exceptions -- pending method states are now being properly rolled back on exception
 - FIXED: Incorrect attempt to convert long to Double saving local variable table
-- FIXED: Gracefully ignores when continuation point doesn't invoke other continuation points
+- FIXED: Gracefully ignores when suspendableContext point doesn't invoke other suspendableContext points
 - ADDED: Increased test coverage.
 
 ### [1.0.3] - 2015-04-16

@@ -139,8 +139,8 @@ public final class CoroutineWriter {
             throw new NullPointerException();
         }
 
-        Coroutine coroutine = runner.getCoroutine();
-        Continuation cn = runner.getContinuation();
+        Suspendable suspendable = runner.getSuspendable();
+        SuspendableContext cn = runner.getSuspendableContext();
 
         int size = cn.getSize();
         VersionedFrame[] frames = new VersionedFrame[size];
@@ -170,7 +170,7 @@ public final class CoroutineWriter {
             Object[] objectOperands = ((Object[]) currentMethodState.getData()[9]);
 
 
-            // Clone the object[] buffers because we need to remove references to the Continuation object for this coroutine.
+            // Clone the object[] buffers because we need to remove references to the SuspendableContext object for this suspendable.
             objectVars = objectVars == null ? new Object[0] : (Object[]) objectVars.clone();
             int[] continuationPositionsInObjectVars = clearContinuationReferences(objectVars, cn);
 
@@ -215,10 +215,10 @@ public final class CoroutineWriter {
         
         Object context = cn.getContext();
         
-        return new SerializedState(coroutine, context, frames);
+        return new SerializedState(suspendable, context, frames);
     }
 
-    private int[] clearContinuationReferences(Object[] objects, Continuation cn) {
+    private int[] clearContinuationReferences(Object[] objects, SuspendableContext cn) {
         int size = 0;
         for (int i = 0; i < objects.length; i++) {
             if (objects[i] == cn) {
@@ -240,7 +240,7 @@ public final class CoroutineWriter {
     }
 
     /**
-     * Coroutine serializer.
+     * Suspendable serializer.
      */
     public interface CoroutineSerializer {
         /**

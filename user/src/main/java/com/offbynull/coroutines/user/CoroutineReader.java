@@ -156,9 +156,9 @@ public final class CoroutineReader {
 
         VersionedFrame[] versionedFrames = state.getFrames();
 
-        Coroutine coroutine = state.getCoroutine();
-        Continuation cn = new Continuation();
-        cn.setMode(Continuation.MODE_SAVING);
+        Suspendable suspendable = state.getSuspendable();
+        SuspendableContext cn = new SuspendableContext();
+        cn.setMode(SuspendableContext.MODE_SAVING);
         cn.setContext(context);
 
         for (int i = versionedFrames.length - 1; i >= 0; i--) {
@@ -210,18 +210,18 @@ public final class CoroutineReader {
         }
 
         if (versionedFrames.length > 0) {
-            // The coroutine has executed and has saved state
+            // The suspendable has executed and has saved state
             cn.successExecutionCycle();
-            cn.setMode(Continuation.MODE_LOADING);
+            cn.setMode(SuspendableContext.MODE_LOADING);
         } else {
-            // The coroutine hasn't executed / doesn't have saved state
+            // The suspendable hasn't executed / doesn't have saved state
             cn.reset();
         }
 
-        return new CoroutineRunner(coroutine, cn);
+        return new CoroutineRunner(suspendable, cn);
     }
 
-    private void placeContinuationReferences(int[] continuationIndexes, Object[] objects, Continuation cn) {
+    private void placeContinuationReferences(int[] continuationIndexes, Object[] objects, SuspendableContext cn) {
         for (int i = 0; i < continuationIndexes.length; i++) {
             int idx = continuationIndexes[i];
             objects[idx] = cn;
@@ -229,7 +229,7 @@ public final class CoroutineReader {
     }
 
     /**
-     * Coroutine deserializer.
+     * Suspendable deserializer.
      */
     public interface CoroutineDeserializer {
         /**

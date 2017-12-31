@@ -28,9 +28,9 @@ import static com.offbynull.coroutines.instrumenter.SharedConstants.RECURSIVE_IN
 import static com.offbynull.coroutines.instrumenter.SharedConstants.RETURN_INVOKE_TEST;
 import static com.offbynull.coroutines.instrumenter.SharedConstants.STATIC_INVOKE_TEST;
 import com.offbynull.coroutines.instrumenter.generators.DebugGenerators.MarkerType;
-import com.offbynull.coroutines.instrumenter.testhelpers.TestUtils.ClassSerializabler;
+
 import static com.offbynull.coroutines.instrumenter.testhelpers.TestUtils.loadClassesInZipResourceAndInstrument;
-import com.offbynull.coroutines.user.Coroutine;
+import com.offbynull.coroutines.user.Suspendable;
 import com.offbynull.coroutines.user.CoroutineReader;
 import com.offbynull.coroutines.user.CoroutineRunner;
 import com.offbynull.coroutines.user.CoroutineWriter;
@@ -41,6 +41,7 @@ import static org.apache.commons.lang3.reflect.FieldUtils.readField;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -113,11 +114,11 @@ public final class SerializationTest {
             ArrayBlockingQueue<Throwable> threadResult = new ArrayBlockingQueue<>(1);
             Thread thread = new Thread(() -> {
                 try {
-                    Class<Coroutine> cls = (Class<Coroutine>) classLoader.loadClass(testClass);
-                    Coroutine coroutine = invokeConstructor(cls, new StringBuilder());
+                    Class<Suspendable> cls = (Class<Suspendable>) classLoader.loadClass(testClass);
+                    Suspendable suspendable = invokeConstructor(cls, new StringBuilder());
 
                     // Create and run original for a few cycles
-                    CoroutineRunner runner = new CoroutineRunner(coroutine);
+                    CoroutineRunner runner = new CoroutineRunner(suspendable);
 
                     assertTrue((runner = writeReadExecute(runner)).execute());
                     assertTrue((runner = writeReadExecute(runner)).execute());
@@ -129,13 +130,13 @@ public final class SerializationTest {
                     assertTrue((runner = writeReadExecute(runner)).execute());
                     assertTrue((runner = writeReadExecute(runner)).execute());
                     assertTrue((runner = writeReadExecute(runner)).execute());
-                    assertFalse((runner = writeReadExecute(runner)).execute()); // coroutine finished executing here
+                    assertFalse((runner = writeReadExecute(runner)).execute()); // suspendable finished executing here
                     assertTrue((runner = writeReadExecute(runner)).execute());
                     assertTrue((runner = writeReadExecute(runner)).execute());
                     assertTrue((runner = writeReadExecute(runner)).execute());
 
                     // Assert everything continued fine with deserialized version
-                    Object deserializedCoroutine = readField(runner, "coroutine", true);
+                    Object deserializedCoroutine = readField(runner, "suspendable", true);
                     StringBuilder deserializedBuilder = (StringBuilder) readField(deserializedCoroutine, "builder", true);
 
                     assertEquals("started\n"
@@ -188,11 +189,11 @@ public final class SerializationTest {
             ArrayBlockingQueue<Throwable> threadResult = new ArrayBlockingQueue<>(1);
             Thread thread = new Thread(() -> {
                 try {
-                    Class<Coroutine> cls = (Class<Coroutine>) classLoader.loadClass(testClass);
-                    Coroutine coroutine = invokeConstructor(cls, new StringBuilder());
+                    Class<Suspendable> cls = (Class<Suspendable>) classLoader.loadClass(testClass);
+                    Suspendable suspendable = invokeConstructor(cls, new StringBuilder());
 
                     // Create and run original for a few cycles
-                    CoroutineRunner runner = new CoroutineRunner(coroutine);
+                    CoroutineRunner runner = new CoroutineRunner(suspendable);
 
 
                     assertTrue((runner = writeReadExecute(runner)).execute());
@@ -205,13 +206,13 @@ public final class SerializationTest {
                     assertTrue((runner = writeReadExecute(runner)).execute());
                     assertTrue((runner = writeReadExecute(runner)).execute());
                     assertTrue((runner = writeReadExecute(runner)).execute());
-                    assertFalse((runner = writeReadExecute(runner)).execute()); // coroutine finished executing here
+                    assertFalse((runner = writeReadExecute(runner)).execute()); // suspendable finished executing here
                     assertTrue((runner = writeReadExecute(runner)).execute());
                     assertTrue((runner = writeReadExecute(runner)).execute());
                     assertTrue((runner = writeReadExecute(runner)).execute());
 
                     // Assert everything continued fine with deserialized version
-                    Object deserializedCoroutine = readField(runner, "coroutine", true);
+                    Object deserializedCoroutine = readField(runner, "suspendable", true);
                     StringBuilder deserializedBuilder = (StringBuilder) readField(deserializedCoroutine, "builder", true);
 
                     assertEquals("started\n"

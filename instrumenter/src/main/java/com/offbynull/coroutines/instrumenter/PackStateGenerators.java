@@ -80,7 +80,7 @@ final class PackStateGenerators {
         // REMEMBER THAT the analyzer will determine the variable slots to create for storage array based on its scan of EVERY
         // continuation/suspend point in the method. Imagine the method that we're instrumenting is this...
         //
-        // public void example(Continuation c, String arg1) {
+        // public void example(SuspendableContext c, String arg1) {
         //     String var1 = "hi";
         //     c.suspend();     
         //
@@ -201,7 +201,7 @@ final class PackStateGenerators {
         // REMEMBER THAT the analyzer will determine the variable slots to create for storage array based on its scan of EVERY
         // continuation/suspend point in the method. Imagine the method that we're instrumenting is this...
         //
-        // public void example(Continuation c, String arg1) {
+        // public void example(SuspendableContext c, String arg1) {
         //     String var1 = "hi";
         //     c.suspend();     
         //
@@ -288,7 +288,7 @@ final class PackStateGenerators {
         // REMEMBER THAT the analyzer will determine the variable slots to create for storage array based on its scan of EVERY
         // continuation/suspend point in the method. Imagine the method that we're instrumenting is this...
         //
-        // public void example(Continuation c, String arg1) {
+        // public void example(SuspendableContext c, String arg1) {
         //     String var1 = "hi";
         //     c.suspend();     
         //

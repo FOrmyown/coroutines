@@ -22,11 +22,11 @@ import java.io.Serializable;
  * Interface to identify a coroutine.
  * @author Kasra Faghihi
  */
-public interface Coroutine extends Serializable {
+public interface Suspendable extends Serializable {
     /**
      * Entry point of coroutine.
-     * @param continuation used to suspend/yield the coroutine
+     * @param suspendableContext used to suspend/yield the coroutine
      * @throws Exception if a problem occurs
      */
-    void run(Continuation continuation) throws Exception;
+    void run(SuspendableContext suspendableContext) throws Exception;
 }

@@ -27,7 +27,7 @@ import java.io.Serializable;
  * internal use by the instrumentation logic and should not be used directly.</b>.
  * @author Kasra Faghihi
  */
-public class Continuation implements Serializable {
+public class SuspendableContext implements Serializable {
     private static final long serialVersionUID = 5L;
     
     /**
@@ -65,7 +65,7 @@ public class Continuation implements Serializable {
     // 2. then, runD() finishes running and returns
     // 3. then, runC() decided to call runX()
     // 4. then, runX() decided to call runY()
-    // 5. then, runY() decides to call Continuation.suspend()
+    // 5. then, runY() decides to call SuspendableContext.suspend()
     //
     // So we left the bottom 2 existing method frames and entered in to 2 new method frames, and the callstack would now look like this...
     // runA()
@@ -124,7 +124,7 @@ public class Continuation implements Serializable {
     // These phases should always be done in order. If you don't do them in order (e.g. if you try to unloadCurrentMethodState() after
     // you've called pushNewMethodState()), things will likely not act right.
     
-    Continuation() {
+    SuspendableContext() {
         // do nothing
     }
     

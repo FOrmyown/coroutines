@@ -19,91 +19,91 @@ package com.offbynull.coroutines.user;
 import java.io.Serializable;
 
 /**
- * Used to execute a {@link Coroutine}. All {@link Coroutine}s must be executed through this class.
+ * Used to execute a {@link Suspendable}. All {@link Suspendable}s must be executed through this class.
  * @author Kasra Faghihi
  */
 public final class CoroutineRunner implements Serializable {
     private static final long serialVersionUID = 5L;
     
-    private Coroutine coroutine;
-    private Continuation continuation;
+    private Suspendable suspendable;
+    private SuspendableContext suspendableContext;
 
     /**
      * Constructs a {@link CoroutineRunner} object.
-     * @param coroutine coroutine to run
+     * @param suspendable suspendable to run
      * @throws NullPointerException if any argument is {@code null}
      */
-    public CoroutineRunner(Coroutine coroutine) {
-        if (coroutine == null) {
+    public CoroutineRunner(Suspendable suspendable) {
+        if (suspendable == null) {
             throw new NullPointerException();
         }
-        this.coroutine = coroutine;
-        this.continuation = new Continuation();
+        this.suspendable = suspendable;
+        this.suspendableContext = new SuspendableContext();
     }
     
-    CoroutineRunner(Coroutine coroutine, Continuation continuation) {
-        if (coroutine == null || continuation == null) {
+    CoroutineRunner(Suspendable suspendable, SuspendableContext suspendableContext) {
+        if (suspendable == null || suspendableContext == null) {
             throw new NullPointerException();
         }
-        this.coroutine = coroutine;
-        this.continuation = continuation;
+        this.suspendable = suspendable;
+        this.suspendableContext = suspendableContext;
     }
 
     /**
-     * Starts/resumes execution of this coroutine. If the coroutine being executed reaches a suspension point (meaning that the method calls
-     * {@link Continuation#suspend() }), this method will return {@code true}. If the coroutine has finished executing, this method will
+     * Starts/resumes execution of this suspendable. If the suspendable being executed reaches a suspension point (meaning that the method calls
+     * {@link SuspendableContext#suspend() }), this method will return {@code true}. If the suspendable has finished executing, this method will
      * return {@code false}.
      * <p>
-     * Calling this method again after the coroutine has finished executing will restart the coroutine.
+     * Calling this method again after the suspendable has finished executing will restart the suspendable.
      * @return {@code false} if execution has completed (the method has return), {@code true} if execution was suspended.
-     * @throws CoroutineException an exception occurred during execution of this coroutine, the saved execution stack and object state may
+     * @throws CoroutineException an exception occurred during execution of this suspendable, the saved execution stack and object state may
      * be out of sync at this point (meaning that unless you know what you're doing, you should not call {@link CoroutineRunner#execute() }
      * again)
      */
     public boolean execute() {
         try {
-            coroutine.run(continuation);
-            continuation.successExecutionCycle();
+            suspendable.run(suspendableContext);
+            suspendableContext.successExecutionCycle();
         } catch (Exception e) {
-            continuation.failedExecutionCycle();
+            suspendableContext.failedExecutionCycle();
             throw new CoroutineException("Exception thrown during execution", e);
         }
         
         // if mode was not set to SAVING after return, it means the method finished executing
-        if (continuation.getMode() != Continuation.MODE_SAVING) {
-            continuation.reset(); // clear methodstates + set to normal
+        if (suspendableContext.getMode() != SuspendableContext.MODE_SAVING) {
+            suspendableContext.reset(); // clear methodstates + set to normal
             return false;
         } else {
-            continuation.setMode(Continuation.MODE_LOADING); // set to loading for next invokation
+            suspendableContext.setMode(SuspendableContext.MODE_LOADING); // set to loading for next invokation
             return true;
         }
     }
 
     /**
-     * Get the context. Accessible via the {@link Continuation} object that gets used by this coroutine.
+     * Get the context. Accessible via the {@link SuspendableContext} object that gets used by this suspendable.
      * @return context context
      */
     public Object getContext() {
-        return continuation.getContext();
+        return suspendableContext.getContext();
     }
 
     /**
-     * Set the context. Accessible via the {@link Continuation} object that gets used by this coroutine.
+     * Set the context. Accessible via the {@link SuspendableContext} object that gets used by this suspendable.
      * @param context context
      */
     public void setContext(Object context) {
-        continuation.setContext(context);
+        suspendableContext.setContext(context);
     }
 
     /**
-     * Get the coroutine assigned to this runner.
-     * @return coroutine assigned to this runner
+     * Get the suspendable assigned to this runner.
+     * @return suspendable assigned to this runner
      */
-    public Coroutine getCoroutine() {
-        return coroutine;
+    public Suspendable getSuspendable() {
+        return suspendable;
     }
 
-    Continuation getContinuation() {
-        return continuation;
+    SuspendableContext getSuspendableContext() {
+        return suspendableContext;
     }
 }

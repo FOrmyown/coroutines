@@ -44,8 +44,9 @@ import com.offbynull.coroutines.instrumenter.generators.DebugGenerators.MarkerTy
 import static com.offbynull.coroutines.instrumenter.testhelpers.TestUtils.getClasspath;
 import static com.offbynull.coroutines.instrumenter.testhelpers.TestUtils.loadClassesInZipResourceAndInstrument;
 import static com.offbynull.coroutines.instrumenter.testhelpers.TestUtils.readZipFromResource;
-import com.offbynull.coroutines.user.Continuation;
-import com.offbynull.coroutines.user.Coroutine;
+
+import com.offbynull.coroutines.user.Suspendable;
+import com.offbynull.coroutines.user.SuspendableContext;
 import com.offbynull.coroutines.user.CoroutineRunner;
 import com.offbynull.coroutines.user.MethodState;
 import java.io.File;
@@ -63,6 +64,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -77,14 +79,14 @@ public final class InstrumentationTest {
         StringBuilder builder = new StringBuilder();
 
         try (URLClassLoader classLoader = loadClassesInZipResourceAndInstrument(SANITY_TEST + ".zip")) {
-            Class<Coroutine> cls = (Class<Coroutine>) classLoader.loadClass(SANITY_TEST);
-            Coroutine coroutine = invokeConstructor(cls, builder);
+            Class<Suspendable> cls = (Class<Suspendable>) classLoader.loadClass(SANITY_TEST);
+            Suspendable suspendable = invokeConstructor(cls, builder);
 
-            CoroutineRunner runner = new CoroutineRunner(coroutine);
+            CoroutineRunner runner = new CoroutineRunner(suspendable);
 
             assertTrue(runner.execute());
             assertFalse(runner.execute());
-            assertTrue(runner.execute()); // coroutine finished executing here
+            assertTrue(runner.execute()); // suspendable finished executing here
             assertFalse(runner.execute());
 
             assertEquals("abab", builder.toString());
@@ -96,16 +98,16 @@ public final class InstrumentationTest {
         StringBuilder builder = new StringBuilder();
 
         try (URLClassLoader classLoader = loadClassesInZipResourceAndInstrument(DIFFERENT_STATES_TEST + ".zip")) {
-            Class<Coroutine> cls = (Class<Coroutine>) classLoader.loadClass(DIFFERENT_STATES_TEST);
-            Coroutine coroutine = invokeConstructor(cls, builder);
+            Class<Suspendable> cls = (Class<Suspendable>) classLoader.loadClass(DIFFERENT_STATES_TEST);
+            Suspendable suspendable = invokeConstructor(cls, builder);
 
-            CoroutineRunner runner = new CoroutineRunner(coroutine);
+            CoroutineRunner runner = new CoroutineRunner(suspendable);
 
             assertTrue(runner.execute());
             assertTrue(runner.execute());
             assertTrue(runner.execute());
             assertTrue(runner.execute());
-            assertFalse(runner.execute()); // coroutine finished executing here
+            assertFalse(runner.execute()); // suspendable finished executing here
 
             assertEquals("ab", builder.toString());
         }
@@ -181,10 +183,10 @@ public final class InstrumentationTest {
     @Test
     public void mustProperlyContinueWhenExceptionOccursButIsCaughtBeforeReachingRunner() throws Exception {
         try (URLClassLoader classLoader = loadClassesInZipResourceAndInstrument(EXCEPTION_THEN_CONTINUE_INVOKE_TEST + ".zip")) {
-            Class<Coroutine> cls = (Class<Coroutine>) classLoader.loadClass(EXCEPTION_THEN_CONTINUE_INVOKE_TEST);
-            Coroutine coroutine = invokeConstructor(cls);
+            Class<Suspendable> cls = (Class<Suspendable>) classLoader.loadClass(EXCEPTION_THEN_CONTINUE_INVOKE_TEST);
+            Suspendable suspendable = invokeConstructor(cls);
 
-            CoroutineRunner runner = new CoroutineRunner(coroutine);
+            CoroutineRunner runner = new CoroutineRunner(suspendable);
 
             assertTrue(runner.execute());
             assertTrue(runner.execute());
@@ -198,10 +200,10 @@ public final class InstrumentationTest {
     @Test
     public void mustProperlySuspendWithNullTypeInOperandStackTable() throws Exception {
         try (URLClassLoader classLoader = loadClassesInZipResourceAndInstrument(NULL_TYPE_IN_OPERAND_STACK_INVOKE_TEST + ".zip")) {
-            Class<Coroutine> cls = (Class<Coroutine>) classLoader.loadClass(NULL_TYPE_IN_OPERAND_STACK_INVOKE_TEST);
-            Coroutine coroutine = invokeConstructor(cls);
+            Class<Suspendable> cls = (Class<Suspendable>) classLoader.loadClass(NULL_TYPE_IN_OPERAND_STACK_INVOKE_TEST);
+            Suspendable suspendable = invokeConstructor(cls);
 
-            CoroutineRunner runner = new CoroutineRunner(coroutine);
+            CoroutineRunner runner = new CoroutineRunner(suspendable);
 
             assertTrue(runner.execute());
             assertFalse(runner.execute());
@@ -216,10 +218,10 @@ public final class InstrumentationTest {
         StringBuilder builder = new StringBuilder();
 
         try (URLClassLoader classLoader = loadClassesInZipResourceAndInstrument(UNINITIALIZED_VARIABLE_INVOKE_TEST + ".zip")) {
-            Class<Coroutine> cls = (Class<Coroutine>) classLoader.loadClass(UNINITIALIZED_VARIABLE_INVOKE_TEST);
-            Coroutine coroutine = invokeConstructor(cls, builder);
+            Class<Suspendable> cls = (Class<Suspendable>) classLoader.loadClass(UNINITIALIZED_VARIABLE_INVOKE_TEST);
+            Suspendable suspendable = invokeConstructor(cls, builder);
 
-            CoroutineRunner runner = new CoroutineRunner(coroutine);
+            CoroutineRunner runner = new CoroutineRunner(suspendable);
 
             assertTrue(runner.execute());
             assertTrue(runner.execute());
@@ -261,14 +263,14 @@ public final class InstrumentationTest {
     @Test
     public void mustHaveResetLoadingStateOnException() throws Exception {
         StringBuilder builder = new StringBuilder();
-        Continuation continuation = null;
+        SuspendableContext suspendableContext = null;
         boolean hit = false;
         try (URLClassLoader classLoader = loadClassesInZipResourceAndInstrument(EXCEPTION_THROW_TEST + ".zip")) {
-            Class<Coroutine> cls = (Class<Coroutine>) classLoader.loadClass(EXCEPTION_THROW_TEST);
-            Coroutine coroutine = invokeConstructor(cls, builder);
+            Class<Suspendable> cls = (Class<Suspendable>) classLoader.loadClass(EXCEPTION_THROW_TEST);
+            Suspendable suspendable = invokeConstructor(cls, builder);
 
-            CoroutineRunner runner = new CoroutineRunner(coroutine);
-            continuation = (Continuation) readField(runner, "continuation", true);
+            CoroutineRunner runner = new CoroutineRunner(suspendable);
+            suspendableContext = (SuspendableContext) readField(runner, "suspendableContext", true);
             
             runner.execute();
             runner.execute();
@@ -282,13 +284,13 @@ public final class InstrumentationTest {
 
         assertTrue(hit);
         
-        MethodState firstPointer = (MethodState) readField(continuation, "firstPointer", true);
-        MethodState nextLoadPointer = (MethodState) readField(continuation, "nextLoadPointer", true);
-        MethodState nextUnloadPointer = (MethodState) readField(continuation, "nextUnloadPointer", true);
-        MethodState firstCutpointPointer = (MethodState) readField(continuation, "firstCutpointPointer", true);
-        assertEquals(2, continuation.getSize());
-        assertNotNull(continuation.getSaved(0));
-        assertNotNull(continuation.getSaved(1));
+        MethodState firstPointer = (MethodState) readField(suspendableContext, "firstPointer", true);
+        MethodState nextLoadPointer = (MethodState) readField(suspendableContext, "nextLoadPointer", true);
+        MethodState nextUnloadPointer = (MethodState) readField(suspendableContext, "nextUnloadPointer", true);
+        MethodState firstCutpointPointer = (MethodState) readField(suspendableContext, "firstCutpointPointer", true);
+        assertEquals(2, suspendableContext.getSize());
+        assertNotNull(suspendableContext.getSaved(0));
+        assertNotNull(suspendableContext.getSaved(1));
         assertNotNull(firstPointer);
         assertNotNull(nextLoadPointer);
         assertTrue(firstPointer == nextLoadPointer);
@@ -300,10 +302,10 @@ public final class InstrumentationTest {
         StringBuilder builder = new StringBuilder();
 
         try (URLClassLoader classLoader = loadClassesInZipResourceAndInstrument(testClass + ".zip", settings)) {
-            Class<Coroutine> cls = (Class<Coroutine>) classLoader.loadClass(testClass);
-            Coroutine coroutine = invokeConstructor(cls, builder);
+            Class<Suspendable> cls = (Class<Suspendable>) classLoader.loadClass(testClass);
+            Suspendable suspendable = invokeConstructor(cls, builder);
 
-            CoroutineRunner runner = new CoroutineRunner(coroutine);
+            CoroutineRunner runner = new CoroutineRunner(suspendable);
 
             assertTrue(runner.execute());
             assertTrue(runner.execute());
@@ -315,7 +317,7 @@ public final class InstrumentationTest {
             assertTrue(runner.execute());
             assertTrue(runner.execute());
             assertTrue(runner.execute());
-            assertFalse(runner.execute()); // coroutine finished executing here
+            assertFalse(runner.execute()); // suspendable finished executing here
             assertTrue(runner.execute());
             assertTrue(runner.execute());
             assertTrue(runner.execute());
@@ -342,10 +344,10 @@ public final class InstrumentationTest {
         StringBuilder builder = new StringBuilder();
 
         try (URLClassLoader classLoader = loadClassesInZipResourceAndInstrument(testClass + ".zip", settings)) {
-            Class<Coroutine> cls = (Class<Coroutine>) classLoader.loadClass(testClass);
-            Coroutine coroutine = invokeConstructor(cls, builder);
+            Class<Suspendable> cls = (Class<Suspendable>) classLoader.loadClass(testClass);
+            Suspendable suspendable = invokeConstructor(cls, builder);
 
-            CoroutineRunner runner = new CoroutineRunner(coroutine);
+            CoroutineRunner runner = new CoroutineRunner(suspendable);
 
             assertTrue(runner.execute());
             assertTrue(runner.execute());
@@ -357,7 +359,7 @@ public final class InstrumentationTest {
             assertTrue(runner.execute());
             assertTrue(runner.execute());
             assertTrue(runner.execute());
-            assertFalse(runner.execute()); // coroutine finished executing here
+            assertFalse(runner.execute()); // suspendable finished executing here
             assertTrue(runner.execute());
             assertTrue(runner.execute());
             assertTrue(runner.execute());
@@ -414,15 +416,15 @@ public final class InstrumentationTest {
         StringBuilder builder = new StringBuilder();
 
         try (URLClassLoader classLoader = loadClassesInZipResourceAndInstrument(EXCEPTION_SUSPEND_TEST + ".zip", new InstrumentationSettings(MarkerType.STDOUT, false, true))) {
-            Class<Coroutine> cls = (Class<Coroutine>) classLoader.loadClass(EXCEPTION_SUSPEND_TEST);
-            Coroutine coroutine = invokeConstructor(cls, builder);
+            Class<Suspendable> cls = (Class<Suspendable>) classLoader.loadClass(EXCEPTION_SUSPEND_TEST);
+            Suspendable suspendable = invokeConstructor(cls, builder);
 
-            CoroutineRunner runner = new CoroutineRunner(coroutine);
+            CoroutineRunner runner = new CoroutineRunner(suspendable);
 
             assertTrue(runner.execute());
             assertTrue(runner.execute());
             assertTrue(runner.execute());
-            assertFalse(runner.execute()); // coroutine finished executing here
+            assertFalse(runner.execute()); // suspendable finished executing here
 
             assertEquals(
                     "START\n"
@@ -442,15 +444,15 @@ public final class InstrumentationTest {
         StringBuffer builder = new StringBuffer();
 
         try (URLClassLoader classLoader = loadClassesInZipResourceAndInstrument(JSR_EXCEPTION_SUSPEND_TEST + ".zip")) {
-            Class<Coroutine> cls = (Class<Coroutine>) classLoader.loadClass(JSR_EXCEPTION_SUSPEND_TEST);
-            Coroutine coroutine = invokeConstructor(cls, builder);
+            Class<Suspendable> cls = (Class<Suspendable>) classLoader.loadClass(JSR_EXCEPTION_SUSPEND_TEST);
+            Suspendable suspendable = invokeConstructor(cls, builder);
 
-            CoroutineRunner runner = new CoroutineRunner(coroutine);
+            CoroutineRunner runner = new CoroutineRunner(suspendable);
 
             assertTrue(runner.execute());
             assertTrue(runner.execute());
             assertTrue(runner.execute());
-            assertFalse(runner.execute()); // coroutine finished executing here
+            assertFalse(runner.execute()); // suspendable finished executing here
 
             assertEquals(
                     "START\n"
@@ -477,39 +479,39 @@ public final class InstrumentationTest {
 
         // All we're testing here is tracking. It's difficult to test to see if monitors were re-entered/exited.
         try (URLClassLoader classLoader = loadClassesInZipResourceAndInstrument(MONITOR_INVOKE_TEST + ".zip")) {
-            Class<Coroutine> cls = (Class<Coroutine>) classLoader.loadClass(MONITOR_INVOKE_TEST);
-            Coroutine coroutine = invokeConstructor(cls, tracker, mon1, mon2, mon3);
+            Class<Suspendable> cls = (Class<Suspendable>) classLoader.loadClass(MONITOR_INVOKE_TEST);
+            Suspendable suspendable = invokeConstructor(cls, tracker, mon1, mon2, mon3);
 
-            CoroutineRunner runner = new CoroutineRunner(coroutine);
+            CoroutineRunner runner = new CoroutineRunner(suspendable);
             
-            // get continuation object so that we can inspect it and make sure its lockstate is what we expect
-            Continuation continuation = (Continuation) readField(runner, "continuation", true);
+            // get suspendableContext object so that we can inspect it and make sure its lockstate is what we expect
+            SuspendableContext suspendableContext = (SuspendableContext) readField(runner, "suspendableContext", true);
 
             assertTrue(runner.execute());
             assertEquals(Arrays.asList("mon1", "mon2", "mon3", "mon1"), tracker);
-            assertArrayEquals(new Object[] { mon1 }, continuation.getSaved(0).getLockState().toArray());
-            assertArrayEquals(new Object[] { mon2, mon3, mon1 }, continuation.getSaved(1).getLockState().toArray());
+            assertArrayEquals(new Object[] { mon1 }, suspendableContext.getSaved(0).getLockState().toArray());
+            assertArrayEquals(new Object[] { mon2, mon3, mon1 }, suspendableContext.getSaved(1).getLockState().toArray());
             
             assertTrue(runner.execute());
             assertEquals(Arrays.asList("mon1", "mon2", "mon3"), tracker);
-            assertArrayEquals(new Object[] { mon1 }, continuation.getSaved(0).getLockState().toArray());
-            assertArrayEquals(new Object[] { mon2, mon3 }, continuation.getSaved(1).getLockState().toArray());
+            assertArrayEquals(new Object[] { mon1 }, suspendableContext.getSaved(0).getLockState().toArray());
+            assertArrayEquals(new Object[] { mon2, mon3 }, suspendableContext.getSaved(1).getLockState().toArray());
             
             assertTrue(runner.execute());
             assertEquals(Arrays.asList("mon1", "mon2"), tracker);
-            assertArrayEquals(new Object[] { mon1 }, continuation.getSaved(0).getLockState().toArray());
-            assertArrayEquals(new Object[] { mon2 }, continuation.getSaved(1).getLockState().toArray());
+            assertArrayEquals(new Object[] { mon1 }, suspendableContext.getSaved(0).getLockState().toArray());
+            assertArrayEquals(new Object[] { mon2 }, suspendableContext.getSaved(1).getLockState().toArray());
             
             assertTrue(runner.execute());
             assertEquals(Arrays.asList("mon1"), tracker);
-            assertArrayEquals(new Object[] { mon1 }, continuation.getSaved(0).getLockState().toArray());
-            assertArrayEquals(new Object[] { }, continuation.getSaved(1).getLockState().toArray());
+            assertArrayEquals(new Object[] { mon1 }, suspendableContext.getSaved(0).getLockState().toArray());
+            assertArrayEquals(new Object[] { }, suspendableContext.getSaved(1).getLockState().toArray());
             
             assertTrue(runner.execute());
             assertEquals(Arrays.<String>asList(), tracker);
-            assertArrayEquals(new Object[] { }, continuation.getSaved(0).getLockState().toArray());
+            assertArrayEquals(new Object[] { }, suspendableContext.getSaved(0).getLockState().toArray());
             
-            assertFalse(runner.execute()); // coroutine finished executing here            
+            assertFalse(runner.execute()); // suspendable finished executing here
         }
     }
 }

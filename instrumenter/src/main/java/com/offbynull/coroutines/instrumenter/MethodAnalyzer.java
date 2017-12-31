@@ -26,13 +26,14 @@ import static com.offbynull.coroutines.instrumenter.asm.SearchUtils.searchForOpc
 import com.offbynull.coroutines.instrumenter.asm.SimpleVerifier;
 import com.offbynull.coroutines.instrumenter.asm.VariableTable;
 import com.offbynull.coroutines.instrumenter.asm.VariableTable.Variable;
-import com.offbynull.coroutines.user.Continuation;
+import com.offbynull.coroutines.user.SuspendableContext;
 import com.offbynull.coroutines.user.LockState;
 import com.offbynull.coroutines.user.MethodState;
 import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
 import static org.apache.commons.collections4.CollectionUtils.union;
+
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.reflect.MethodUtils;
 import org.objectweb.asm.Opcodes;
@@ -51,8 +52,8 @@ import org.objectweb.asm.tree.analysis.Frame;
 
 final class MethodAnalyzer {
     
-    private static final Type CONTINUATION_CLASS_TYPE = Type.getType(Continuation.class);
-    private static final Method CONTINUATION_SUSPEND_METHOD = MethodUtils.getAccessibleMethod(Continuation.class, "suspend");
+    private static final Type CONTINUATION_CLASS_TYPE = Type.getType(SuspendableContext.class);
+    private static final Method CONTINUATION_SUSPEND_METHOD = MethodUtils.getAccessibleMethod(SuspendableContext.class, "suspend");
     
     private final ClassInformationRepository classInfoRepo;
     
@@ -361,7 +362,7 @@ final class MethodAnalyzer {
                     idx = i;
                 } else {
                     // should never really happen because we should be checking before calling this method
-                    throw new IllegalArgumentException("Multiple Continuation arguments found in method " + methodNode.name);
+                    throw new IllegalArgumentException("Multiple SuspendableContext arguments found in method " + methodNode.name);
                 }
             }
         }
@@ -472,12 +473,12 @@ final class MethodAnalyzer {
         // In Java8, this is the case for lambdas. Lambdas get translated to invokedynamic calls when they're created. Take the following
         // Java code as an example...
         //
-        // public void run(Continuation c) {
+        // public void run(SuspendableContext c) {
         //     String temp = "hi";
         //     builder.append("started\n");
         //     for (int i = 0; i < 10; i++) {
         //         Consumer<Integer> consumer = (x) -> {
-        //             temp.length(); // pulls in temp as an arg, which causes c (the Continuation object) to go in as a the second argument
+        //             temp.length(); // pulls in temp as an arg, which causes c (the SuspendableContext object) to go in as a the second argument
         //             builder.append(x).append('\n');
         //             System.out.println("XXXXXXX");
         //             c.suspend();
@@ -492,13 +493,13 @@ final class MethodAnalyzer {
         //     ALOAD 0: this
         //     ALOAD 2: temp
         //     ALOAD 1: c
-        //     INVOKEDYNAMIC accept(LambdaInvokeTest, String, Continuation) : Consumer [
+        //     INVOKEDYNAMIC accept(LambdaInvokeTest, String, SuspendableContext) : Consumer [
         //       // handle kind 0x6 : INVOKESTATIC
         //       LambdaMetafactory.metafactory(MethodHandles$Lookup, String, MethodType, MethodType, MethodHandle, MethodType) : CallSite
         //       // arguments:
         //       (Object) : void, 
         //       // handle kind 0x7 : INVOKESPECIAL
-        //       LambdaInvokeTest.lambda$0(String, Continuation, Integer) : void, 
+        //       LambdaInvokeTest.lambda$0(String, SuspendableContext, Integer) : void,
         //       (Integer) : void
         //     ]
         //     ASTORE 4
@@ -519,14 +520,14 @@ final class MethodAnalyzer {
         // Even though the invokedynamic instruction is calling a method called "accept", it doesn't actually call Consumer.accept().
         // Instead it just creates the Consumer object that accept() is eventually called on. This means that it makes no sense to add
         // instrumentation around invokedynamic because it isn't calling what we expected it to call. When accept() does eventually get
-        // called, it doesn't take in a Continuation object as a parameter so instrumentation won't be added in around it.
+        // called, it doesn't take in a SuspendableContext object as a parameter so instrumentation won't be added in around it.
         //
         // There's no way to reliably instrument around the accept() method because we don't know if an accept() invocation will be to a
         // Consumer that we've instrumented.
         //
         // The instrumenter identifies which methods to instrument and which method invocations to instrument by checking to see if they
-        // explicitly take in a Continuation as a parameter. Using lambdas like this is essentially like creating an implementation of
-        // Consumer as a class and setting the Continuation object as a field in that class. Cases like that cannot be reliably
+        // explicitly take in a SuspendableContext as a parameter. Using lambdas like this is essentially like creating an implementation of
+        // Consumer as a class and setting the SuspendableContext object as a field in that class. Cases like that cannot be reliably
         // identified for instrumentation.
 
         for (AbstractInsnNode insnNode : insnNodes) {
