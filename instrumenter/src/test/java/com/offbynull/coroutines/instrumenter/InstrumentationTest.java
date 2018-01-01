@@ -45,8 +45,8 @@ import static com.offbynull.coroutines.instrumenter.testhelpers.TestUtils.getCla
 import static com.offbynull.coroutines.instrumenter.testhelpers.TestUtils.loadClassesInZipResourceAndInstrument;
 import static com.offbynull.coroutines.instrumenter.testhelpers.TestUtils.readZipFromResource;
 
-import com.offbynull.coroutines.user.Suspendable;
 import com.offbynull.coroutines.user.SuspendableContext;
+import com.offbynull.coroutines.user.Suspendable;
 import com.offbynull.coroutines.user.CoroutineRunner;
 import com.offbynull.coroutines.user.MethodState;
 import java.io.File;

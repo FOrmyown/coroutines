@@ -30,6 +30,7 @@ import static com.offbynull.coroutines.instrumenter.SharedConstants.STATIC_INVOK
 import com.offbynull.coroutines.instrumenter.generators.DebugGenerators.MarkerType;
 
 import static com.offbynull.coroutines.instrumenter.testhelpers.TestUtils.loadClassesInZipResourceAndInstrument;
+
 import com.offbynull.coroutines.user.Suspendable;
 import com.offbynull.coroutines.user.CoroutineReader;
 import com.offbynull.coroutines.user.CoroutineRunner;

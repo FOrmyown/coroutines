@@ -18,6 +18,7 @@ package com.offbynull.coroutines.instrumenter;
 
 import com.offbynull.coroutines.instrumenter.generators.DebugGenerators;
 import static com.offbynull.coroutines.instrumenter.testhelpers.TestUtils.loadClassesInZipResourceAndInstrument;
+
 import com.offbynull.coroutines.user.Suspendable;
 import com.offbynull.coroutines.user.CoroutineReader;
 import com.offbynull.coroutines.user.CoroutineRunner;

@@ -19,6 +19,7 @@ package com.offbynull.coroutines.user;
 import com.offbynull.coroutines.user.SerializationUtils.FrameUpdatePointKey;
 import com.offbynull.coroutines.user.SerializationUtils.FrameUpdatePointValue;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * {@link CoroutineRunner}'s state translated for serialization.
@@ -29,6 +30,7 @@ public final class SerializedState implements Serializable {
     
     private final Suspendable suspendable;
     private final Object context;
+    private final List<ArgumentFrame> argumentFrames;
     private final VersionedFrame[] frames; // at each frame, we can have mulitple frame states (for older/newer versions)
 
     /**
@@ -39,7 +41,7 @@ public final class SerializedState implements Serializable {
      * @throws NullPointerException if {@code frames}
      * @throws IllegalArgumentException if any elements of {@code frame} are {@code null} or are otherwise in an invalid state
      */
-    public SerializedState(Suspendable suspendable, Object context, VersionedFrame[] frames) {
+    public SerializedState(Suspendable suspendable, Object context, VersionedFrame[] frames, List<ArgumentFrame> argumentFrames) {
         if (frames == null) {
             throw new NullPointerException();
         }
@@ -47,6 +49,7 @@ public final class SerializedState implements Serializable {
         this.suspendable = suspendable;
         this.context = context;
         this.frames = (VersionedFrame[]) frames.clone();
+        this.argumentFrames = argumentFrames;
 
         try {
             validateState(); // sanity check
@@ -69,6 +72,10 @@ public final class SerializedState implements Serializable {
      */
     public Object getContext() {
         return context;
+    }
+
+    public List<ArgumentFrame> getArgumentFrames(){
+        return argumentFrames;
     }
 
     /**
@@ -141,6 +148,7 @@ public final class SerializedState implements Serializable {
         public Frame[] getFrames() {
             return (Frame[]) frames.clone();
         }
+
 
         void validateState() {
             if (frames == null) {

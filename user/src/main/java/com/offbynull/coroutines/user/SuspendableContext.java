@@ -1,35 +1,37 @@
 /*
  * Copyright (c) 2017, Kasra Faghihi, All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 3.0 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
  */
 package com.offbynull.coroutines.user;
 
+
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * This class is used to store and restore the execution state. Any method that takes in this type as a parameter will be instrumented to
  * have its state saved/restored.
  * <p>
- * Calls to {@link #suspend() } will suspend/yield the execution of the coroutine. Calls to {@link #setContext(java.lang.Object) } /
+ * Calls to {@link #suspend() } will suspend/yield the execution of the coroutine. Calls to {@link #setContext(Object) } /
  * {@link #getContext() } can be used to pass data back and forth between the coroutine and its caller. <b>All other methods are for
  * internal use by the instrumentation logic and should not be used directly.</b>.
  * @author Kasra Faghihi
  */
-public class SuspendableContext implements Serializable {
+public final class SuspendableContext implements Serializable {
     private static final long serialVersionUID = 5L;
-    
+
     /**
      * Do not use -- for internal use only.
      */
@@ -42,16 +44,17 @@ public class SuspendableContext implements Serializable {
      * Do not use -- for internal use only.
      */
     public static final int MODE_LOADING = 2;
-    
+
     private MethodState firstPointer;
-    
+
     private MethodState nextLoadPointer;
     private MethodState nextUnloadPointer;
 
     private MethodState firstCutpointPointer;
-    
+
     private int mode = MODE_NORMAL;
     private Object context;
+    private List<ArgumentFrame> argumentFrames;
 
     // How should method states be handled? Imagine that we started off restoring the following call chain...
     // runA() <-- firstPointer[0]
@@ -123,11 +126,11 @@ public class SuspendableContext implements Serializable {
     // ----------------
     // These phases should always be done in order. If you don't do them in order (e.g. if you try to unloadCurrentMethodState() after
     // you've called pushNewMethodState()), things will likely not act right.
-    
+
     SuspendableContext() {
         // do nothing
     }
-    
+
     /**
      * Do not use -- for internal use only.
      * @return n/a
@@ -160,13 +163,13 @@ public class SuspendableContext implements Serializable {
     public MethodState loadNextMethodState() {
         MethodState ret = nextLoadPointer;
         nextLoadPointer = nextLoadPointer.getNext();
-        
+
         // We've reached the end of load list, so set up the 'unload' list that gets called when a method continues execution from the point
         // where it's paused it.
         if (nextLoadPointer == null) {
             nextUnloadPointer = ret;
         }
-        
+
         return ret;
     }
 
@@ -183,7 +186,7 @@ public class SuspendableContext implements Serializable {
      */
     public void unloadMethodStateToBefore(MethodState methodState) {
         // REMEMBER: methodState being passed in must be in the linkedlist starting from firstPointer
-        
+
         //if (methodState == null) {
         //    throw new NullPointerException();
         //}
@@ -225,7 +228,7 @@ public class SuspendableContext implements Serializable {
         } else {
             firstPointer = firstCutpointPointer;
         }
-        
+
         nextLoadPointer = firstPointer;     // reset next load pointer so we load from the beginning
         nextUnloadPointer = null;           // reset unload pointer
         firstCutpointPointer = null;        // reset cutpoint list
@@ -236,18 +239,18 @@ public class SuspendableContext implements Serializable {
      */
     public void failedExecutionCycle() {
         // FOR A PRIMER ON WHAT WE'RE DOING HERE, SEE LARGE BLOCK OF COMMENT AT BEGINNING OF CLASS
-        
+
         nextLoadPointer = firstPointer;     // reset next load pointer so we load from the beginning
         nextUnloadPointer = null;           // reset unload pointer
         firstCutpointPointer = null;        // reset cutpoint list
     }
 
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
     /**
      * Call to suspend/yield execution.
      * @throws UnsupportedOperationException if the caller has not been instrumented
@@ -271,14 +274,25 @@ public class SuspendableContext implements Serializable {
     public void setContext(Object context) {
         this.context = context;
     }
-    
-    
-    
-    
-    
-    
-    
-    
+
+
+    public void setArgumentFrames(List<ArgumentFrame> argumentFrames){
+        this.argumentFrames = argumentFrames;
+    }
+
+    public List<ArgumentFrame> getArgumentFrames(){
+        return argumentFrames;
+    }
+
+    public Object[] getArguments(){
+        List<ArgumentFrame> argFrames = getArgumentFrames();
+        if(argFrames.size() == 0) {
+            throw new IllegalStateException("");
+        }
+        return argFrames.get(argFrames.size() - 1).getArgs();
+    }
+
+
     /**
      * Do not use -- for internal use only. For testing.
      * @param idx n/a
@@ -293,7 +307,7 @@ public class SuspendableContext implements Serializable {
         for (int i = 0; i < idx; i++) {
             state = state.getNext();
             if (state == null) {
-               throw new IllegalArgumentException();
+                throw new IllegalArgumentException();
             }
         }
         return state;

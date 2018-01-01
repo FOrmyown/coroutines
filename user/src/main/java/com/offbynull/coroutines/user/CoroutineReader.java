@@ -30,6 +30,7 @@ import java.io.OptionalDataException;
 import java.io.Serializable;
 import java.io.StreamCorruptedException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -154,12 +155,15 @@ public final class CoroutineReader {
 
         Object context = state.getContext();
 
+        List<ArgumentFrame> argFrames = state.getArgumentFrames();
+
         VersionedFrame[] versionedFrames = state.getFrames();
 
         Suspendable suspendable = state.getSuspendable();
         SuspendableContext cn = new SuspendableContext();
         cn.setMode(SuspendableContext.MODE_SAVING);
         cn.setContext(context);
+        cn.setArgumentFrames(argFrames);
 
         for (int i = versionedFrames.length - 1; i >= 0; i--) {
             VersionedFrame versionedFrame = versionedFrames[i];

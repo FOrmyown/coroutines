@@ -40,6 +40,7 @@ import static com.offbynull.coroutines.instrumenter.asm.MethodInvokeUtils.getArg
 import static com.offbynull.coroutines.instrumenter.asm.MethodInvokeUtils.getReturnTypeOfInvocation;
 import com.offbynull.coroutines.instrumenter.asm.VariableTable.Variable;
 import com.offbynull.coroutines.user.SuspendableContext;
+
 import static com.offbynull.coroutines.user.SuspendableContext.MODE_NORMAL;
 import static com.offbynull.coroutines.user.SuspendableContext.MODE_SAVING;
 import com.offbynull.coroutines.user.LockState;

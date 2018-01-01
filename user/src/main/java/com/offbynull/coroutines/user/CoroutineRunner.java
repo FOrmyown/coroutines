@@ -60,7 +60,7 @@ public final class CoroutineRunner implements Serializable {
      * be out of sync at this point (meaning that unless you know what you're doing, you should not call {@link CoroutineRunner#execute() }
      * again)
      */
-    public boolean execute() {
+    public boolean execute(Object object) {
         try {
             suspendable.run(suspendableContext);
             suspendableContext.successExecutionCycle();

@@ -28,6 +28,7 @@ import java.io.NotSerializableException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -214,8 +215,9 @@ public final class CoroutineWriter {
         }
         
         Object context = cn.getContext();
+        List<ArgumentFrame> argFrames = cn.getArgumentFrames();
         
-        return new SerializedState(suspendable, context, frames);
+        return new SerializedState(suspendable, context, frames, argFrames);
     }
 
     private int[] clearContinuationReferences(Object[] objects, SuspendableContext cn) {

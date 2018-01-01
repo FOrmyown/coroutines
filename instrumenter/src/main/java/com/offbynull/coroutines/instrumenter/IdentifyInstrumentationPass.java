@@ -38,8 +38,6 @@ import org.apache.commons.lang3.Validate;
 final class IdentifyInstrumentationPass implements InstrumentationPass {
 
     private static final Type CONTINUATION_CLASS_TYPE = Type.getType(SuspendableContext.class);
-    private static final Type CONTINUATION_ANNO_CLASS_TYPE = Type.getType(com.offbynull.coroutines.user.annotation.Continuation.class);
-
     @Override
     public void pass(ClassNode classNode, InstrumentationState state) {
         Validate.notNull(classNode);
