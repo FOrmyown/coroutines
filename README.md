@@ -106,7 +106,7 @@ In your build script...
 
 First, define the Ant Task. It's available for download from [Maven Central](https://repo1.maven.org/maven2/com/offbynull/coroutines/ant-plugin/1.4.0/ant-plugin-1.4.0-shaded.jar).
 ```xml
-<taskdef name="InstrumentTask" classname="com.offbynull.coroutines.antplugin.InstrumentTask">
+<taskdef name="InstrumentTask" classname="InstrumentTask">
     <classpath>
         <pathelement location="ant-task-1.4.0-shaded.jar"/>
     </classpath>
@@ -298,8 +298,8 @@ When using one of the provided build system plugins on your code, classes which 
 Basic example...
 
 ```java
-import com.offbynull.coroutines.user.SuspendableContext;
-import com.offbynull.coroutines.user.Suspendable;
+import SuspendableContext;
+import Suspendable;
 import java.io.Serializable;
 import java.util.Random;
 
