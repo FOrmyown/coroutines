@@ -112,18 +112,18 @@
         <module name="EmptyForIteratorPad"/>
         <module name="GenericWhitespace"/>
         <module name="MethodParamPad"/>
-        <module name="NoWhitespaceAfter"/>
-        <module name="NoWhitespaceBefore"/>
+        <!--<module name="NoWhitespaceAfter"/>-->
+        <!--<module name="NoWhitespaceBefore"/>-->
         <module name="OperatorWrap"/>
         <module name="ParenPad"/>
         <module name="TypecastParenPad"/>
-        <module name="WhitespaceAfter"/>
+        <!--<module name="WhitespaceAfter"/>-->
         <!--<module name="WhitespaceAround"/>-->
 
 
         <!-- Modifier Checks                                    -->
         <!-- See http://checkstyle.sf.net/config_modifiers.html -->
-        <module name="ModifierOrder"/>
+        <!--<module name="ModifierOrder"/>-->
         <module name="RedundantModifier"/>
 
 

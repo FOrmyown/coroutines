@@ -19,6 +19,7 @@ package com.offbynull.coroutines.user;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Random;
 
 /**
  * This class is used to store and restore the execution state. Any method that takes in this type as a parameter will be instrumented to
@@ -55,6 +56,14 @@ public final class SuspendableContext implements Serializable {
     private int mode = MODE_NORMAL;
     private Object context;
     private List<ArgumentFrame> argumentFrames;
+
+    transient private String token;
+
+    transient private static char[] str = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k',
+            'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w',
+            'x', 'y', 'z', 'A','B','C','D','E','F','G','H','I','J','K',
+            'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W',
+            'X', 'Y' ,'Z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
 
     // How should method states be handled? Imagine that we started off restoring the following call chain...
     // runA() <-- firstPointer[0]
@@ -248,8 +257,29 @@ public final class SuspendableContext implements Serializable {
 
 
 
+    private static String createPassWord(){
+        Random rd = new Random();
+        final int  maxNum = 62;
+        StringBuffer sb = new StringBuffer();
+        int rdGet;//取得随机数
+        int count=0;
+        while(count < 32){
+            rdGet = Math.abs(rd.nextInt(maxNum));
+            if (rdGet >= 0 && rdGet < str.length) {
+                sb.append(str[rdGet]);
+                count ++;
+            }
+        }
+        return sb.toString();
+    }
 
+    public String prepareSuspend(){
+        return token = createPassWord();
+    }
 
+    public String getToken(){
+        return token;
+    }
 
     /**
      * Call to suspend/yield execution.

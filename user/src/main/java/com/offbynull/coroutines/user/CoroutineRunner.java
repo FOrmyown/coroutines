@@ -17,6 +17,7 @@
 package com.offbynull.coroutines.user;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
 /**
  * Used to execute a {@link Suspendable}. All {@link Suspendable}s must be executed through this class.
@@ -62,6 +63,9 @@ public final class CoroutineRunner implements Serializable {
      */
     public boolean execute(Object... args) {
         try {
+            if(suspendableContext.getArgumentFrames() == null){
+                suspendableContext.setArgumentFrames(new ArrayList<ArgumentFrame>());
+            }
             suspendableContext.getArgumentFrames().add(new ArgumentFrame(args));
             suspendable.run(suspendableContext);
             suspendableContext.successExecutionCycle();
