@@ -20,6 +20,6 @@ public class ArgumentFrame implements Serializable{
     }
 
     public boolean hasArgs(){
-        return args != null;
+        return args.length != 0;
     }
 }

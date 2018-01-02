@@ -56,19 +56,19 @@
 
         <!-- Checks for Javadoc comments.                     -->
         <!-- See http://checkstyle.sf.net/config_javadoc.html -->
-        <module name="JavadocMethod">
-            <property name="scope" value="protected" />
-            <property name="allowUndeclaredRTE" value="true" />
-            <property name="suppressLoadErrors" value="true" />
-        </module>
-        <module name="JavadocType">
-            <property name="scope" value="protected" />
-            <property name="authorFormat" value=".+" />
-        </module>
-        <module name="JavadocVariable">
-            <property name="scope" value="protected" />
-        </module>
-        <module name="JavadocStyle"/>
+        <!--<module name="JavadocMethod">-->
+            <!--<property name="scope" value="protected" />-->
+            <!--<property name="allowUndeclaredRTE" value="true" />-->
+            <!--<property name="suppressLoadErrors" value="true" />-->
+        <!--</module>-->
+        <!--<module name="JavadocType">-->
+            <!--<property name="scope" value="protected" />-->
+            <!--<property name="authorFormat" value=".+" />-->
+        <!--</module>-->
+        <!--<module name="JavadocVariable">-->
+            <!--<property name="scope" value="protected" />-->
+        <!--</module>-->
+        <!--<module name="JavadocStyle"/>-->
 
 
         <!-- Checks for Naming Conventions.                  -->
@@ -97,7 +97,7 @@
         <!-- Checks for Size Violations.                    -->
         <!-- See http://checkstyle.sf.net/config_sizes.html -->
         <module name="LineLength">
-            <property name="max" value="140"/>
+            <property name="max" value="190"/>
         </module>
         <!-- Little value. A lot of times you find large methods which are easy to read / don't contain much complexity.
         There's no point causing a failure because of this. -->
@@ -118,7 +118,7 @@
         <module name="ParenPad"/>
         <module name="TypecastParenPad"/>
         <module name="WhitespaceAfter"/>
-        <module name="WhitespaceAround"/>
+        <!--<module name="WhitespaceAround"/>-->
 
 
         <!-- Modifier Checks                                    -->
