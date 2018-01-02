@@ -23,6 +23,7 @@
       <module name="instrumenter" target="1.8" />
       <module name="java-agent" target="1.8" />
       <module name="maven-plugin" target="1.8" />
+      <module name="suspension" target="1.5" />
       <module name="user" target="1.5" />
     </bytecodeTargetLevel>
   </component>

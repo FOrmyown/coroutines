@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/ant-plugin/ant-plugin.iml" filepath="$PROJECT_DIR$/ant-plugin/ant-plugin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/build-tools/build-tools.iml" filepath="$PROJECT_DIR$/build-tools/build-tools.iml" />
+      <module fileurl="file://$PROJECT_DIR$/gradle-plugin/gradle-plugin.iml" filepath="$PROJECT_DIR$/gradle-plugin/gradle-plugin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/instrumenter/instrumenter.iml" filepath="$PROJECT_DIR$/instrumenter/instrumenter.iml" />
+      <module fileurl="file://$PROJECT_DIR$/java-agent/java-agent.iml" filepath="$PROJECT_DIR$/java-agent/java-agent.iml" />
+      <module fileurl="file://$PROJECT_DIR$/maven-plugin/maven-plugin.iml" filepath="$PROJECT_DIR$/maven-plugin/maven-plugin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/suspension.iml" filepath="$PROJECT_DIR$/.idea/suspension.iml" />
+      <module fileurl="file://$PROJECT_DIR$/user/user.iml" filepath="$PROJECT_DIR$/user/user.iml" />
+    </modules>
+  </component>
+</project>
